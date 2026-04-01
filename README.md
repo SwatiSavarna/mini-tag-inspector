@@ -100,5 +100,8 @@ A sample email containing a hidden tracking pixel. When opened, it automatically
 
 ## Tracking Logs (After Email Open)
 Logs generated after the email is opened, showing metadata like IP address, browser, OS, and request headers captured from the pixel request.
+
 <img width="1908" height="961" alt="image" src="https://github.com/user-attachments/assets/5368da33-31b8-4063-a5fd-f7e6b0aa7754" />
+
+
 

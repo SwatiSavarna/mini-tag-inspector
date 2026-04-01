@@ -1,5 +1,3 @@
-
-
 from flask import Flask, request, send_file, jsonify, render_template_string
 import io
 import struct
@@ -14,7 +12,7 @@ app = Flask(__name__)
 tracking_log = []
 
 def create_1x1_png():
-    """Create a minimal 1x1 transparent PNG pixel in memory."""
+    
     def make_png_chunk(chunk_type, data):
         chunk_len = len(data)
         chunk_data = chunk_type + data
@@ -35,10 +33,6 @@ def create_1x1_png():
 
 
 
-
-
-
-
 @app.route('/')
 def index():
     path = os.path.join(os.path.dirname(__file__), 'index.html')
@@ -53,7 +47,7 @@ def email_preview():
 
 @app.route('/pixel.png')
 def tracking_pixel():
-    """Serve the 1x1 tracking pixel and log all request metadata."""
+    
     now = datetime.datetime.now()
 
     
@@ -120,7 +114,7 @@ def tracking_pixel():
 
 @app.route('/api/logs')
 def get_logs():
-    """Return all tracking events as JSON."""
+    
     return jsonify({
         "total": len(tracking_log),
         "events": list(reversed(tracking_log))
@@ -136,11 +130,13 @@ def clear_logs():
 if __name__ == '__main__':
     print("\n" + "="*60)
     print("  TRACKING PIXEL DEMO SERVER")
-    print("  Educational purposes only")
+  
     print("="*60)
-    print("\n  Dashboard: http://localhost:5000")
-    print("  Fake Email: http://localhost:5000/email")
-    print("  Pixel URL:  http://localhost:5000/pixel.png")
+    print("\n  Dashboard: http://localhost:5001")
+    print("  Fake Email: http://localhost:5001/email")
+    print("  Pixel URL:  http://localhost:5001/pixel.png")
     print("\n  Watching for pixel hits...\n")
     
     app.run(debug=True, port=5001)
+
+
