@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Email: Exclusive Offer Inside! </title>
+<style>
+  
+
+    :root {
+    --bg: #fafafd;
+    --surface: #111118;
+     --border: #2a2a38;
+    --accent: #00ff88;
+    --accent2: #ff3366;
+    --accent3: #3388ff;
+     --text: #090912;
+    --muted: #6b6b80;
+    --warn: #ffaa00;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+  
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: 340px 1fr;
+  }
+
+  
+  .sidebar {
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .sidebar-header {
+    padding: 20px;
+    border-bottom: 1px solid var(--border);
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+
+  .sidebar-header strong {
+    display: block;
+    color: var(--text);
+    font-size: 13px;
+    margin-bottom: 4px;
+  }
+
+  .email-list-item {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    transition: background 0.1s;
+    background: rgba(0,255,136,0.04);
+    border-left: 3px solid var(--accent);
+  }
+
+  .email-list-item .sender {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+
+  .email-list-item .subject {
+    font-size: 11px;
+     color: var(--muted);
+    white-space: nowrap;
+     overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 4px;
+  }
+
+  .email-list-item .time {
+    font-size: 10px;
+    color: var(--muted);
+  }
+
+  .email-list-item-inactive {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    opacity: 0.5;
+  }
+
+  .email-list-item-inactive .sender { font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+  .email-list-item-inactive .subject { font-size: 11px; color: var(--muted); }
+  .email-list-item-inactive .time { font-size: 10px; color: var(--muted); margin-top: 4px; }
+
+  
+  .viewer {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .viewer-toolbar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 28px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  .viewer-toolbar a {
+    color: var(--accent3);
+    text-decoration: none;
+    font-size: 11px;
+    border: 1px solid var(--border);
+    padding: 4px 12px;
+    margin-left: auto;
+    transition: all 0.15s;
+  }
+
+  .viewer-toolbar a:hover {
+    border-color: var(--accent3);
+    background: rgba(51,136,255,0.1);
+  }
+
+  .email-view {
+    flex: 1;
+    padding: 36px 48px;
+    overflow-y: auto;
+    position: relative;
+  }
+
+  .email-header-meta {
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 20px;
+    margin-bottom: 28px;
+  }
+
+  .email-subject-line {
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 12px;
+    font-family: Georgia, serif;
+  }
+
+  .email-from {
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+
+  .email-from strong { color: var(--text); }
+
+  .email-body {
+    font-family: Georgia, serif;
+    font-size: 15px;
+    line-height: 1.85;
+    /* color: #c8c8d8; */
+    max-width: 600px;
+  }
+
+  .email-body .greeting { font-size: 20px; margin-bottom: 20px; }
+
+  .email-cta {
+    display: inline-block;
+    margin: 24px 0;
+    background: #2255aa;
+    color: white;
+    padding: 12px 32px;
+    text-decoration: none;
+
+    font-size: 13px;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+
+  .email-cta:hover { background: #3366cc; }
+
+  .email-footer {
+    margin-top: 40px;
+    font-size: 11px;
+    color: #555566;
+
+    line-height: 1.8;
+    border-top: 1px solid #1e1e28;
+    padding-top: 16px;
+  }
+
+ 
+  .annotation-overlay {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+     background:wheat;
+    border-top: 1px solid var(--border);
+    padding: 16px 28px;
+    display: flex;
+    gap: 24px;
+    align-items: center;
+    flex-wrap: wrap;
+    z-index: 100;
+  }
+
+  .annotation-tag {
+    
+    font-size: 11px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .tag-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+    .tag-dot.red { background: var(--accent2); box-shadow: 0 0 6px var(--accent2); }
+  .tag-dot.green { background: var(--accent); box-shadow: 0 0 6px var(--accent); animation: blink 1s infinite; }
+  .tag-dot.yellow { background: var(--warn); }
+
+  @keyframes blink {
+    0%,100% { opacity:1; }
+    50% { opacity:0.2; }
+  }
+
+     .status-msg {
+    margin-left: auto;
+    font-size: 11px;
+    color: var(--accent2);
+    animation: fadeIn 0.5s;
+  }
+
+  @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+
+  
+  .pixel-highlight {
+    position: relative;
+    display: inline-block;
+   }
+
+    .pixel-highlight::after {
+    content: '← tracking pixel (1×1px, invisible)';
+    position: absolute;
+    left: 20px;
+    top: -2px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--accent2);
+    white-space: nowrap;
+    pointer-events: none;
+   }
+
+   .pixel-fired-notice {
+    display: none;
+    background: rgba(255,51,102,0.12);
+    border: 1px solid rgba(255,51,102,0.4);
+    padding: 12px 16px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--accent2);
+    margin-bottom: 20px;
+    animation: slideDown 0.4s ease;
+  }
+
+  @keyframes slideDown {
+    from { opacity:0; transform: translateY(-10px); }
+    to { opacity:1; transform: translateY(0); }
+  }
+
+  .pixel-fired-notice.show { display: block; }
+</style>
+</head>
+<body>
+
+
+  <div class="sidebar">
+   <div class="sidebar-header">
+     <strong>Inbox</strong>
+     1 unread message
+    </div>
+
+  <div class="email-list-item">
+    <div class="sender">ABC Store &lt;offers@abc-store.com&gt;</div>
+    <div class="subject"> Exclusive 24-hr Offer Inside!</div>
+    <div class="time">Today, 10:42 AM</div>
+  </div>
+
+  <div class="email-list-item-inactive">
+    <div class="sender">LinkedIn</div>
+    <div class="subject">You have 3 new connection requests</div>
+    <div class="time">Yesterday</div>
+  </div>
+
+  <div class="email-list-item-inactive">
+    <div class="sender">GitHub</div>
+    <div class="subject">[notification] New comment on your PR</div>
+    <div class="time">Mar 29</div>
+  </div>
+
+  <div class="email-list-item-inactive">
+    <div class="sender">Newsletter Weekly</div>
+    <div class="subject">This week in AI: what you missed</div>
+    <div class="time">Mar 28</div>
+  </div>
+</div>
+
+<!-- Email viewer -->
+<div class="viewer">
+  <div class="viewer-toolbar">
+    <span> Viewing: ABC Sore Promo Email</span>
+    <a href="/" target="_blank">→ View Dashboard</a>
+  </div>
+
+  <div class="email-view">
+    <div class="pixel-fired-notice" id="fired-notice">
+      PIXEL FIRED — Your IP address, browser, OS, and language just got logged on the server. Check the dashboard.
+    </div>
+
+        <div class="email-header-meta">
+        <div class="email-subject-line"> Exclusive 24-Hour Offer — Just For You!</div>
+        <div class="email-from">From: <strong>ABC Store &lt;offers@abc-store.com&gt;</strong></div>
+       <div class="email-from" style="margin-top:4px;">To: <strong>xyz@email.com</strong></div>
+       <div class="email-from" style="margin-top:4px;">Date: Tuesday, March 31, 2026 — 10:42 AM</div>
+    </div>
+
+       <div class="email-body">
+      <div class="greeting">Hi there,</div>
+
+      <p>We're excited to share a <strong>24-hour exclusive offer</strong> with our most valued customers. As a thank-you for your loyalty, we're offering 40% off your next purchase — no minimum order required.</p>
+
+      
+
+       <div style="text-align:left; margin: 28px 0;">
+        <a class="email-cta" href="#">Claim My 40% Discount →</a>
+       </div>
+
+       
+
+         <p style="margin-top:16px;">Best wishes,<br>The ABC Store Team</p>
+
+      <div class="email-footer">
+        
+         <div class="pixel-highlight" style="margin-top:8px;">
+          <img
+           src="http://localhost:5001/pixel.png?uid=123&campaign=test"
+            width="1"
+            height="1"
+            alt=""
+            style="display:inline-block;"
+            onload="pixelFired()"
+          >
+           </div>
+       </div>
+    </div>
+    </div>
+</div>
+
+
+           <div class="annotation-overlay">
+           <div class="annotation-tag">
+            <div class="tag-dot green"></div>
+            <span>Pixel loaded automatically when email opened</span>
+             </div>
+            <div class="annotation-tag">
+           <div class="tag-dot red"></div>
+           <span>No user interaction required</span>
+            </div>
+             <div class="annotation-tag">
+             <div class="tag-dot yellow"></div>
+               <span>Works even if you don't click anything</span>
+  </div>
+  <div class="status-msg" id="status-msg"></div>
+</div>
+
+
+
+
+
+<script>
+function pixelFired() {
+  document.getElementById('fired-notice').classList.add('show');
+  document.getElementById('status-msg').textContent = 'PIXEL HIT LOGGED — data captured on server';
+}
+</script>
+
+
+
+
+</body>
+</html>

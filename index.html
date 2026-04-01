@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tracking Pixel — How It Works</title>
+<style>
+
+
+  :root {
+    --bg: #f4f4f8;
+    --surface: #111118;
+     --surface2: #18181f;
+    --border: #2a2a38;
+     --accent: #00ff88;
+     --accent2: #ff3366;
+    --accent3: #3388ff;
+    --text: #e8e8f0;
+    --muted: #6b6b80;
+    --warn: #ffaa00;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'IBM Plex Sans', monospace;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.03) 2px,
+      rgba(0,0,0,0.03) 4px
+    );
+    pointer-events: none;
+     z-index: 9999;
+  }
+
+  header {
+    border-bottom: 1px solid var(--border);
+     padding: 20px 40px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: var(--surface);
+  }
+
+  .logo-dot {
+     width: 10px; height: 10px;
+    border-radius: 50%;
+    background: var(--accent);
+     box-shadow: 0 0 12px var(--accent);
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+     0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  header h1 {
+    font-family: 'IBM Plex Mono', monospace;
+     font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  .badge {
+    margin-left: auto;
+    background: rgba(255,51,102,0.15);
+     border: 1px solid var(--accent2);
+    color: var(--accent2);
+    font-family: 'IBM Plex Mono', monospace;
+     font-size: 10px;
+    padding: 3px 10px;
+     letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .main {
+    display: grid;
+     grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto auto auto;
+     gap: 1px;
+    background: var(--border);
+    min-height: calc(100vh - 61px);
+  }
+
+  .panel {
+    background: var(--bg);
+    padding: 32px;
+  }
+
+  .panel-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+     text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .panel-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  
+  .flow {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .flow-step {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+    position: relative;
+  }
+
+  .flow-step:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    left: 19px;
+    top: 40px;
+    bottom: -20px;
+    width: 1px;
+    background: linear-gradient(to bottom, var(--border), transparent);
+  }
+
+  .step-num {
+    width: 40px; height: 40px;
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--accent);
+    flex-shrink: 0;
+    background: var(--surface2);
+  }
+
+  .step-body {
+    padding-top: 8px;
+    padding-bottom: 28px;
+  }
+
+  .step-title {
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: black;
+  }
+
+  .step-desc {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.7;
+  }
+
+  .step-code {
+    margin-top: 8px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    padding: 10px 14px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--accent3);
+    line-height: 1.6;
+  }
+
+  
+  .data-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .data-item {
+    border: 1px solid var(--border);
+    padding: 14px;
+    background: var(--surface2);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .data-item::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 3px;
+    height: 100%;
+    background: var(--accent2);
+  }
+
+  .data-item.safe::before { background: var(--accent3); }
+  .data-item.warn::before { background: var(--warn); }
+  .data-item.danger::before { background: var(--accent2); }
+
+  .data-key {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .data-val {
+    font-size: 12px;
+    color: var(--text);
+    font-weight: 500;
+  }
+
+ 
+  .panel.full-width {
+    grid-column: 1 / -1;
+  }
+
+  .log-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .counter {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  .counter span {
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  .btn {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    padding: 6px 16px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    transition: all 0.15s;
+  }
+
+  .btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .btn.danger:hover {
+    border-color: var(--accent2);
+    color: var(--accent2);
+  }
+
+  .btn.primary {
+    border-color: var(--accent3);
+    color: var(--accent3);
+  }
+
+  .btn.primary:hover {
+    background: var(--accent3);
+    color: var(--bg);
+  }
+
+  #log-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-height: 420px;
+    overflow-y: auto;
+    padding-right: 4px;
+  }
+
+  #log-container::-webkit-scrollbar { width: 4px; }
+  #log-container::-webkit-scrollbar-track { background: var(--surface2); }
+  #log-container::-webkit-scrollbar-thumb { background: var(--border); }
+
+  .log-entry {
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    padding: 16px;
+    animation: slideIn 0.3s ease;
+    cursor: pointer;
+    transition: border-color 0.15s;
+  }
+
+  .log-entry:hover { border-color: var(--accent3); }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(-8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .log-meta {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+  }
+
+  .log-id {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--accent);
+    background: rgba(0,255,136,0.08);
+    padding: 2px 8px;
+    border: 1px solid rgba(0,255,136,0.2);
+  }
+
+  .log-time {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+  }
+
+  .log-campaign {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--warn);
+    background: rgba(255,170,0,0.08);
+    padding: 2px 8px;
+    border: 1px solid rgba(255,170,0,0.2);
+  }
+
+  .log-fields {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 8px;
+  }
+
+  .log-field {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .field-key {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+  }
+
+  .field-val {
+    font-size: 11px;
+    color: var(--text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .field-val.danger { color: var(--accent2); }
+  .field-val.warn { color: var(--warn); }
+  .field-val.good { color: var(--accent); }
+
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--muted);
+  }
+
+  .empty-state p {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    margin-bottom: 20px;
+  }
+
+  .pixel-url-box {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    padding: 16px 20px;
+    margin-top: 20px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--accent3);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .pixel-url-label {
+    color: var(--muted);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  a.open-email {
+    display: inline-block;
+    margin-top: 16px;
+    font-family: 'IBM Plex Mono', monospace;
+     font-size: 12px;
+    padding: 10px 24px;
+     border: 1px solid var(--accent2);
+    color: var(--accent2);
+    text-decoration: none;
+     letter-spacing: 0.05em;
+    transition: all 0.15s;
+  }
+
+  a.open-email:hover {
+    background: var(--accent2);
+    color: var(--bg);
+   }
+
+     .pixel-preview {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 12px;
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .pixel-box {
+    width: 60px; height: 60px;
+    border: 1px dashed var(--border);
+    background: repeating-conic-gradient(#1a1a20 0% 25%, #111118 0% 50%) 0 0 / 10px 10px;
+    display: flex;
+    align-items: center;
+     justify-content: center;
+    font-size: 9px;
+    color: var(--muted);
+    font-family: 'IBM Plex Mono';
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .warning-bar {
+    background: rgba(255,51,102,0.08);
+    border: 1px solid rgba(255,51,102,0.3);
+    padding: 12px 20px;
+     font-size: 11px;
+    color: var(--accent2);
+   
+    letter-spacing: 0.05em;
+    margin-bottom: 20px;
+  }
+
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-dot"></div>
+  <h1>Tracking Pixel </h1>
+  
+</header>
+
+<div class="main">
+
+ 
+  <div class="panel">
+   
+    <div class="panel-label">01 — How Tracking Pixels Work</div>
+    <div class="flow">
+
+      <div class="flow-step">
+        <div class="step-num">1</div>
+
+          <div class="step-body">
+
+          <div class="step-title">Marketer embeds invisible image in email</div>
+          <div class="step-desc">A 1×1 transparent PNG is inserted into HTML content. To the reader, it's completely invisible — zero pixels wide and tall effectively.</div>
+          <div class="step-code">&lt;img src="http://localhost:5001/pixel.png?uid=123&campaign=test" width="1" height="1"&gt;</div>
+        </div>
+      </div>
+
+      <div class="flow-step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <div class="step-title">user opens email / webpage</div>
+          <div class="step-desc">When the email client or browser renders the HTML, it automatically fetches every image — including the tracking pixel — without any user action.</div>
+        </div>
+      </div>
+
+      <div class="flow-step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <div class="step-title">HTTP request reaches the tracker server</div>
+          <div class="step-desc">The browser sends a GET request. That request involuntarily leaks sensitive headers — no JavaScript needed.</div>
+        
+        </div> 
+      </div>
+
+      <div class="flow-step">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <div class="step-title">Server logs everything & returns pixel</div>
+          <div class="step-desc">The server records IP address, browser type, OS, language, timestamp, and any custom parameters. It returns the tiny image so the user never suspects anything.</div>
+        </div>
+      </div>
+
+    </div>
+
+    <div style="margin-top:8px;">
+      <a class="open-email" href="/email" target="_blank">→ Open Fake Email (triggers pixel)</a>
+    </div>
+  </div>
+
+ 
+  <div class="panel">
+    <div class="panel-label">02 — Data Leaked by a Single Image Request</div>
+    <div class="data-grid">
+      <div class="data-item danger">
+        <div class="data-key">IP Address</div>
+        <div class="data-val">Approximate location, ISP</div>
+      </div>
+      <div class="data-item danger">
+        <div class="data-key">User-Agent</div>
+        <div class="data-val">Browser, OS, device type</div>
+      </div>
+      <div class="data-item warn">
+        <div class="data-key">Accept-Language</div>
+        <div class="data-val">Preferred language / region</div>
+      </div>
+
+
+      <div class="data-item warn">
+        <div class="data-key">Referer</div>
+        <div class="data-val">Page / email client origin</div>
+      </div>
+
+
+      <div class="data-item danger">
+        <div class="data-key">Timestamp</div>
+        <div class="data-val">Exact open time (timezone clues)</div>
+      </div>
+     
+    
+      <div class="data-item warn">
+        <div class="data-key">DNT Header</div>
+        <div class="data-val">Do-Not-Track preference (ignored)</div>
+      </div>
+       <div class="data-item warn">
+        <div class="data-key">Sec-Fetch-*</div>
+        <div class="data-val">Navigation context hints</div>
+      </div>
+     
+    </div>
+
+    <div class="pixel-preview" style="margin-top:20px;">
+      <div class="pixel-box">
+        <span>1×1 px</span>
+        <span style="font-size:7px;color:#444">transparent</span>
+      </div>
+      <div style="line-height:1.8; font-size:12px;">
+
+        
+        <div style="color:var(--accent2)">← The server sees everything listed above</div>
+        <div style="color:var(--muted); font-size:11px;">No JavaScript. No cookies. Just one image request.</div>
+      </div>
+     </div>
+  </div>
+
+ 
+
+         <div class="panel full-width">
+    <div class="warning-bar">
+       LIVE CAPTURE ACTIVE — Open the <a href="/email" target="_blank" style="color:var(--accent2)">fake email</a> in a new tab or embed the pixel URL below to see data appear in real time.
+      </div>
+    <div class="panel-label">03 — Live Tracking Log</div>
+
+
+
+    <div class="log-toolbar">
+       <div class="counter">Total captures: <span id="total-count">0</span></div>
+      <button class="btn primary" onclick="fetchLogs()">↻ Refresh</button>
+       <button class="btn danger" onclick="clearLogs()">✕ Clear Logs</button>
+      <div style="margin-left:auto; font-size:11px; color:var(--muted); font-family:'IBM Plex Mono'">
+        Auto-refreshing every 3s
+      </div>
+    </div>
+
+
+
+      <div id="log-container">
+      <div class="empty-state">
+        <p>[ No pixel hits yet ]</p>
+        <p style="font-size:11px;">Open the fake email or visit:<br>
+          <span style="color:var(--accent3)">http://localhost:5001/pixel.png?campaign=test&uid=demo</span>
+        </p>
+       </div>
+    </div>
+
+
+
+      <div class="pixel-url-box">
+       <span class="pixel-url-label">Pixel URL</span>
+      <span>http://localhost:5001/pixel.png?campaign=newsletter&uid=user123&eid=msg456</span>
+       <span style="color:var(--muted); font-size:10px;">↑ embed in any HTML to track opens</span>
+     </div>
+    </div>
+
+</div>
+
+
+
+
+
+
+
+<script>
+let lastCount = 0;
+
+async function fetchLogs() {
+  try {
+    const r = await fetch('/api/logs');
+    const data = await r.json();
+
+    document.getElementById('total-count').textContent = data.total;
+
+    const container = document.getElementById('log-container');
+
+    if (data.total === 0) {
+      container.innerHTML = `<div class="empty-state">
+        <p>[ No pixel hits yet ]</p>
+        <p style="font-size:11px;">Open the <a href="/email" target="_blank" style="color:var(--accent3)">fake email</a> to trigger the pixel.</p>
+      </div>`;
+      return;
+    }
+
+    if (data.total !== lastCount) {
+      lastCount = data.total;
+      container.innerHTML = data.events.map(e => `
+        <div class="log-entry">
+          <div class="log-meta">
+            <span class="log-id">#${e.id}</span>
+            <span class="log-time">${e.timestamp}</span>
+            ${e.campaign !== 'none' ? `<span class="log-campaign">campaign: ${e.campaign}</span>` : ''}
+            ${e.user_id !== 'anonymous' ? `<span class="log-campaign" style="border-color:rgba(51,136,255,0.3);color:#3388ff;background:rgba(51,136,255,0.08)">uid: ${e.user_id}</span>` : ''}
+          </div>
+          <div class="log-fields">
+            <div class="log-field">
+              <span class="field-key">IP Address</span>
+              <span class="field-val danger">${e.ip_address}</span>
+            </div>
+            <div class="log-field">
+              <span class="field-key">Browser / OS</span>
+              <span class="field-val warn">${e.browser} on ${e.os}</span>
+            </div>
+            <div class="log-field">
+              <span class="field-key">Language</span>
+              <span class="field-val">${e.accept_language.split(',')[0]}</span>
+            </div>
+            <div class="log-field">
+              <span class="field-key">Referer</span>
+              <span class="field-val" style="color:var(--muted);font-size:10px;">${e.referer.substring(0,60)}${e.referer.length > 60 ? '...' : ''}</span>
+            </div>
+            <div class="log-field">
+              <span class="field-key">DNT Header</span>
+              <span class="field-val ${e.dnt === '1' ? 'good' : 'danger'}">${e.dnt === '1' ? '✓ Set (but ignored by tracker)' : '✗ Not set'}</span>
+            </div>
+            <div class="log-field">
+              <span class="field-key">Sec-Fetch-Dest</span>
+              <span class="field-val">${e.sec_fetch_dest}</span>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+  } catch(err) {
+    console.error('Failed to fetch logs:', err);
+  }
+}
+
+async function clearLogs() {
+  await fetch('/api/clear');
+  lastCount = 0;
+  fetchLogs();
+}
+
+fetchLogs();
+setInterval(fetchLogs, 3000);
+</script>
+
+
+
+
+
+</body>
+</html>
