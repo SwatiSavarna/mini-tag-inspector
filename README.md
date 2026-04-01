@@ -35,11 +35,11 @@ python app.py
 
 
 Then open:
-* http://localhost:5001 → dashboard
-* http://localhost:5001/email → sample email
-* http://localhost:5001/pixel.png → tracking pixel
-* http://localhost:5001/api/logs → raw logs
-* http://localhost:5001/api/clear → clear logs
+* http://localhost:5001 - dashboard
+* http://localhost:5001/email - sample email
+* http://localhost:5001/pixel.png - tracking pixel
+* http://localhost:5001/api/logs - raw logs
+* http://localhost:5001/api/clear - clear logs
 
 ---
 
@@ -68,9 +68,9 @@ The dashboard updates every few seconds to show what gets captured.
 
 ## Why this works
 
-Browsers automatically send a bunch of headers with every request — even for something as simple as an image.
+Browsers automatically send a bunch of headers with every request,even for something as simple as an image.
 
-So even without JavaScript or cookies, you can still get useful (and sometimes sensitive) information.
+So even without JavaScript or cookies, we can still get useful (and sometimes sensitive) information.
 
 ---
 
